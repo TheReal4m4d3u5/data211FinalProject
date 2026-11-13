@@ -1,0 +1,132 @@
+---
+title: "Activity and Sleep Data"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load the Data
+
+```{r}
+library(readxl)
+library(ggplot2)
+
+# read in my data
+data <- read_excel("activityAndSleep.xlsx", skip = 2, n_max = 18)
+
+# give the columns shorter names
+names(data) <- c("Date", "Exercise", "Move", "TotalCal", "Stand",
+                 "Intervals", "Sleep", "SleepScore", "Wakeups", "Awake")
+
+# change sleep from a time into hours
+hours <- as.numeric(format(data$Sleep, "%H"))
+minutes <- as.numeric(format(data$Sleep, "%M"))
+data$SleepHours <- hours + minutes / 60
+
+# use short labels so dates fit under the bar charts
+date_labels <- format(as.Date(data$Date), "%m/%d")
+```
+
+## Tables
+
+```{r}
+# activity table
+data[, c("Date", "Exercise", "Move", "TotalCal", "Stand", "Intervals")]
+```
+
+```{r}
+# sleep table
+data[, c("Date", "SleepHours", "SleepScore", "Wakeups", "Awake")]
+```
+
+```{r}
+# summary statistics
+summary(data[, c("Exercise", "Move", "TotalCal", "Stand", "Intervals",
+                 "SleepHours", "SleepScore", "Wakeups", "Awake")])
+```
+
+## Graphs
+
+```{r}
+old_par <- par(mar = c(7, 4, 4, 2) + 0.1, las = 2)
+barplot(data$Exercise, names.arg = date_labels,
+        cex.names = 0.8,
+        col = "lightblue",
+        main = "Exercise Minutes per Day",
+        xlab = "Date", ylab = "Exercise (minutes)")
+abline(h = 90, lty = 2)
+par(old_par)
+```
+
+```{r}
+old_par <- par(mar = c(7, 4, 4, 2) + 0.1, las = 2)
+barplot(data$Move, names.arg = date_labels,
+        cex.names = 0.8,
+        col = "lightblue",
+        main = "Move Calories per Day",
+        xlab = "Date", ylab = "Active Calories")
+abline(h = 1600, lty = 2)
+par(old_par)
+```
+
+```{r}
+ggplot(data, aes(x = Date, y = SleepHours)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 7, linetype = "dashed") +
+  labs(
+    title = "Hours of Sleep per Night",
+    x = "Date",
+    y = "Sleep (hours)"
+  )
+```
+
+
+
+```{r}
+ggplot(data, aes(x = Date, y = Intervals)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Active 15-Minute Intervals per Day",
+    x = "Date",
+    y = "Number of Active Intervals"
+  )
+```
+
+```{r}
+ggplot(data, aes(x = Exercise, y = SleepHours)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Exercise vs Sleep",
+    x = "Exercise (minutes)",
+    y = "Sleep (hours)"
+  )
+```
+
+```{r}
+ggplot(data, aes(x = SleepHours, y = SleepScore)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Sleep Hours vs Sleep Score",
+    x = "Sleep (hours)",
+    y = "Sleep Score"
+  )
+```
+
+```{r}
+ggplot(data, aes(x = Intervals, y = SleepHours)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Active Intervals vs. Sleep Hours",
+    x = "Active 15-Minute Intervals",
+    y = "Sleep (hours)"
+  )
+```
